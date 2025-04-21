@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   TextField,
@@ -8,8 +8,9 @@ import {
   Switch,
   Box,
   CircularProgress,
-  useTheme as muiTheme,
+  IconButton,
 } from "@mui/material";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { motion } from "framer-motion";
 import { useTheme } from "./theme-provider";
 
@@ -21,31 +22,71 @@ export default function Weather() {
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(false);
   const { darkMode, setDarkMode } = useTheme();
-  const theme = muiTheme();
 
-  const fetchWeather = async () => {
-    if (!city) return;
+  const fetchWeatherByCity = async (cityName) => {
+    if (!cityName) return;
     setLoading(true);
     try {
-      // Current weather
       const currentRes = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}&units=metric`
       );
       setWeather(currentRes.data);
 
-      // Forecast
       const forecastRes = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
       );
-      const dailyForecast = forecastRes.data.list.filter(item =>
+      const daily = forecastRes.data.list.filter(item =>
         item.dt_txt.includes("12:00:00")
       );
-      setForecast(dailyForecast);
-    } catch (error) {
+      setForecast(daily);
+    } catch (err) {
       alert("City not found");
     }
     setLoading(false);
   };
+
+  const fetchWeatherByCoords = async (lat, lon) => {
+    setLoading(true);
+    try {
+      const currentRes = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+      );
+      setWeather(currentRes.data);
+      setCity(currentRes.data.name);
+
+      const forecastRes = await axios.get(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+      );
+      const daily = forecastRes.data.list.filter(item =>
+        item.dt_txt.includes("12:00:00")
+      );
+      setForecast(daily);
+    } catch (err) {
+      alert("Could not fetch weather for your location");
+    }
+    setLoading(false);
+  };
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        fetchWeatherByCoords(latitude, longitude);
+      },
+      () => {
+        alert("Permission denied");
+      }
+    );
+  };
+
+  useEffect(() => {
+    // Try to fetch location on load
+    handleGetLocation();
+  }, []);
 
   return (
     <Box
@@ -81,34 +122,50 @@ export default function Weather() {
         />
       </Box>
 
-      <TextField
-        label="Enter city"
-        variant="outlined"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && fetchWeather()}
-        sx={{
-          mb: 2,
-          width: 300,
-          "& .MuiOutlinedInput-root": {
-            color: darkMode ? "white" : "#0E0E0E",
-            backgroundColor: darkMode ? "#1e1e1e" : "white",
-          },
-          "& .MuiInputLabel-root": {
-            color: darkMode ? "#FF6001" : "#0E0E0E",
-          },
-          "& .Mui-focused": {
+      <Box display="flex" gap={1} alignItems="center" mb={2}>
+        <TextField
+          label="Enter city"
+          variant="outlined"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && fetchWeatherByCity(city)}
+          sx={{
+            width: 300,
+            "& .MuiOutlinedInput-root": {
+              color: darkMode ? "white" : "#0E0E0E",
+              backgroundColor: darkMode ? "#1e1e1e" : "white",
+            },
+            "& .MuiInputLabel-root": {
+              color: darkMode ? "#FF6001" : "#0E0E0E",
+            },
+            "& .Mui-focused": {
+              color: "#FF6001",
+            },
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: darkMode ? "#FF6001" : "#BEBEBE",
+            },
+          }}
+        />
+        <IconButton
+          onClick={handleGetLocation}
+          sx={{
             color: "#FF6001",
-          },
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: darkMode ? "#FF6001" : "#BEBEBE",
-          },
-        }}
-      />
+            bgcolor: darkMode ? "#1e1e1e" : "#fff",
+            borderRadius: 2,
+            border: "1px solid #FF6001",
+            "&:hover": {
+              bgcolor: "#FF6001",
+              color: "white",
+            },
+          }}
+        >
+          <MyLocationIcon />
+        </IconButton>
+      </Box>
 
       <Button
         variant="contained"
-        onClick={fetchWeather}
+        onClick={() => fetchWeatherByCity(city)}
         sx={{
           mb: 3,
           backgroundColor: "#FF6001",
