@@ -4,233 +4,221 @@ import axios from "axios";
 import {
   TextField,
   Button,
+  Paper,
   Typography,
   Switch,
   Box,
   CircularProgress,
   IconButton,
+  FormControlLabel,
 } from "@mui/material";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 import { motion } from "framer-motion";
 import { useTheme } from "./theme-provider";
-
-const API_KEY = "b74cdbb2340ba20e2593c6520b0d3768";
+import Image from "next/image";
 
 export default function Weather() {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
-  const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [unit, setUnit] = useState("metric"); // 'metric' for °C, 'imperial' for °F
+  const [isMounted, setIsMounted] = useState(false); // Track component mount
   const { darkMode, setDarkMode } = useTheme();
 
-  const fetchWeatherByCity = async (cityName) => {
-    if (!cityName) return;
+  useEffect(() => {
+    setIsMounted(true); // Set the mounted state to true after component is mounted
+  }, []);
+
+  const fetchWeather = async () => {
+    if (!city) return;
     setLoading(true);
     try {
-      const currentRes = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}&units=metric`
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=b74cdbb2340ba20e2593c6520b0d3768&units=${unit}`
       );
-      setWeather(currentRes.data);
-
-      const forecastRes = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
-      );
-      const daily = forecastRes.data.list.filter(item =>
-        item.dt_txt.includes("12:00:00")
-      );
-      setForecast(daily);
-    } catch (err) {
+      setWeather(response.data);
+    } catch (error) {
       alert("City not found");
     }
     setLoading(false);
   };
 
-  const fetchWeatherByCoords = async (lat, lon) => {
-    setLoading(true);
-    try {
-      const currentRes = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-      );
-      setWeather(currentRes.data);
-      setCity(currentRes.data.name);
+  const getUnitSymbol = () => (unit === "metric" ? "°C" : "°F");
 
-      const forecastRes = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-      );
-      const daily = forecastRes.data.list.filter(item =>
-        item.dt_txt.includes("12:00:00")
-      );
-      setForecast(daily);
-    } catch (err) {
-      alert("Could not fetch weather for your location");
+  // Handle user's location button click
+  const handleLocationClick = async () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        setLoading(true);
+        try {
+          const response = await axios.get(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=b74cdbb2340ba20e2593c6520b0d3768&units=${unit}`
+          );
+          setWeather(response.data);
+        } catch (error) {
+          alert("Failed to fetch weather for your location.");
+        }
+        setLoading(false);
+      });
+    } else {
+      alert("Geolocation is not supported by this browser.");
     }
-    setLoading(false);
   };
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        fetchWeatherByCoords(latitude, longitude);
-      },
-      () => {
-        alert("Permission denied");
-      }
-    );
-  };
-
-  useEffect(() => {
-    // Try to fetch location on load
-    handleGetLocation();
-  }, []);
+  if (!isMounted) {
+    return null; // Prevent rendering until client-side mounting is complete
+  }
 
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        bgcolor: darkMode ? "#0E0E0E" : "#E4E4E4",
-        color: darkMode ? "white" : "#0E0E0E",
+        minHeight: "55vh",
+        bgcolor: darkMode ? "#121212" : "#f4f4f4",
+        color: darkMode ? "white" : "black",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         p: 3,
-        pt: 6,
       }}
     >
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        St-Weather
-      </Typography>
-
-      <Box display="flex" alignItems="center" mb={3}>
-        <Typography>Dark Mode</Typography>
-        <Switch
-          checked={darkMode}
-          onChange={() => setDarkMode(!darkMode)}
-          sx={{
-            "& .MuiSwitch-thumb": {
-              backgroundColor: "#FF6001",
-            },
-            "& .MuiSwitch-track": {
-              backgroundColor: darkMode ? "#BEBEBE" : "#E4E4E4",
-            },
-          }}
+      {/* Theme + Unit Toggles */}
+      <Box display="flex" alignItems="center" gap={4} mb={3}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={darkMode}
+              onChange={() => setDarkMode(!darkMode)}
+              sx={{
+                "& .MuiSwitch-track": {
+                  backgroundColor: darkMode ? "#FF6001" : "#FF6001",
+                },
+                "& .MuiSwitch-thumb": {
+                  backgroundColor: darkMode ? "#FF6001" : "#FF6001",
+                },
+              }}
+            />
+          }
+          label="Dark Mode"
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={unit === "imperial"}
+              onChange={() => setUnit(unit === "metric" ? "imperial" : "metric")}
+              sx={{
+                "& .MuiSwitch-track": {
+                  backgroundColor: darkMode ? "#FF6001" : "#FF6001",
+                },
+                "& .MuiSwitch-thumb": {
+                  backgroundColor: darkMode ? "#FF6001" : "#FF6001",
+                },
+              }}
+            />
+          }
+          label={unit === "metric" ? "°C" : "°F"}
         />
       </Box>
 
-      <Box display="flex" gap={1} alignItems="center" mb={2}>
-        <TextField
-          label="Enter city"
-          variant="outlined"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && fetchWeatherByCity(city)}
-          sx={{
-            width: 300,
-            "& .MuiOutlinedInput-root": {
-              color: darkMode ? "white" : "#0E0E0E",
-              backgroundColor: darkMode ? "#1e1e1e" : "white",
+      {/* Location Button */}
+      <IconButton
+        color="primary"
+        onClick={handleLocationClick}
+        sx={{
+          mb: 3,
+          color: darkMode ? "#FF6001" : "#FF6001",
+          "&:hover": {
+            color: "#FF7020",
+          },
+        }}
+      >
+        <MyLocationIcon />
+      </IconButton>
+
+      {/* Input & Button */}
+      <TextField
+        label="Enter city"
+        variant="outlined"
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        sx={{
+          mb: 2,
+          width: 300,
+          "& label.Mui-focused": {
+            color: "#FF6001", // Always orange
+          },
+          "& label": {
+            color: darkMode ? "#FF6001" : "#FF6001", // Always orange, even when not focused
+          },
+          "& .MuiOutlinedInput-root": {
+            color: darkMode ? "white" : "black",
+            "& fieldset": {
+              borderColor: darkMode ? "#BEBEBE" : "#FF6001",
             },
-            "& .MuiInputLabel-root": {
-              color: darkMode ? "#FF6001" : "#0E0E0E",
+            "&:hover fieldset": {
+              borderColor: "#FF7020",
             },
-            "& .Mui-focused": {
-              color: "#FF6001",
+            "&.Mui-focused fieldset": {
+              borderColor: "#FF6001",
             },
-            "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: darkMode ? "#FF6001" : "#BEBEBE",
-            },
-          }}
-        />
-        <IconButton
-          onClick={handleGetLocation}
-          sx={{
-            color: "#FF6001",
-            bgcolor: darkMode ? "#1e1e1e" : "#fff",
-            borderRadius: 2,
-            border: "1px solid #FF6001",
-            "&:hover": {
-              bgcolor: "#FF6001",
-              color: "white",
-            },
-          }}
-        >
-          <MyLocationIcon />
-        </IconButton>
-      </Box>
+          },
+          // Placeholder color change in dark mode
+          "& .MuiInputBase-input::placeholder": {
+            color: darkMode ? "#FF6001" : "#FF6001", // Always orange placeholder
+          },
+        }}
+        onKeyDown={(e) => e.key === "Enter" && fetchWeather()}
+      />
 
       <Button
         variant="contained"
-        onClick={() => fetchWeatherByCity(city)}
+        onClick={fetchWeather}
         sx={{
           mb: 3,
           backgroundColor: "#FF6001",
-          color: "white",
           "&:hover": {
             backgroundColor: "#FF7020",
           },
         }}
         disabled={loading}
       >
-        {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Get Weather"}
+        {loading ? <CircularProgress size={24} /> : "Get Weather"}
       </Button>
 
+      {/* Weather Result */}
       {weather && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          style={{ marginBottom: "2rem", textAlign: "center" }}
         >
-          <Typography variant="h5" fontWeight="bold">{weather.name}</Typography>
-          <Typography variant="h6">Temperature: {weather.main.temp}°C</Typography>
-          <Typography>Condition: {weather.weather[0].description}</Typography>
-          <img
-            src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
-            alt="Weather icon"
-            width={80}
-          />
+          <Paper
+            elevation={4}
+            sx={{
+              p: 3,
+              textAlign: "center",
+              bgcolor: darkMode ? "#1e1e1e" : "#fff",
+              color: darkMode ? "white" : "black", // Paper font color is white in dark mode
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              {weather.name}, {weather.sys.country}
+            </Typography>
+            <Image
+              src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+              alt="weather icon"
+              width={100}
+              height={100}
+              style={{ margin: "0 auto" }}
+            />
+            <Typography variant="h6">
+              Temperature: {weather.main.temp}
+              {getUnitSymbol()}
+            </Typography>
+            <Typography>Condition: {weather.weather[0].description}</Typography>
+          </Paper>
         </motion.div>
-      )}
-
-      {forecast.length > 0 && (
-        <Box>
-          <Typography variant="h6" gutterBottom>5-Day Forecast</Typography>
-          <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
-            {forecast.map((day, index) => (
-              <Box
-                key={index}
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  backgroundColor: darkMode ? "#1e1e1e" : "#fff",
-                  textAlign: "center",
-                  minWidth: 120,
-                }}
-              >
-                <Typography variant="body1">
-                  {new Date(day.dt_txt).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </Typography>
-                <img
-                  src={`https://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
-                  alt={day.weather[0].description}
-                />
-                <Typography variant="body2">
-                  {day.main.temp.toFixed(1)}°C
-                </Typography>
-                <Typography variant="caption">{day.weather[0].main}</Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
       )}
     </Box>
   );
