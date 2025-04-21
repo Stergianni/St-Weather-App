@@ -2,11 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  --primary: #FF6001;
+  --secondary: #BEBEBE;
+  --accent: #0E0E0E;
+  --background: #E4E4E4;
+  --highlight: #FF7020;
+}
+
 html.dark {
-  background-color: #0E0E0E;
-  color: white;
+  background-color: var(--accent); /* Black background for dark mode */
+  color: white;                    /* Text in white for dark mode */
 }
 
 body {
   @apply transition-colors duration-300;
+  background-color: var(--background); /* Default background */
+  color: var(--accent); /* Default text color */
 }
