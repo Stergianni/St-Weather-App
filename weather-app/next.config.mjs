@@ -1,10 +1,5 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+export default {
   images: {
     domains: ['openweathermap.org'],
   },
-  output: 'export',
-  distDir: 'docs',
 };
-
-export default nextConfig;
