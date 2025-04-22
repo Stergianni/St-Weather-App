@@ -17,6 +17,10 @@ A sleek and modern weather app built with **Next.js**, **Material UI**, and **Op
 
 ![St-Weather App Screenshot](./public/screenshot.png)
 
+## 🌐 Live Demo
+
+Check out the live version of the St-Weather App on [Vercel](https://st-weather-app.vercel.app/).
+
 ## 🛠️ Tech Stack
 
 - [Next.js](https://nextjs.org/)
@@ -30,5 +34,5 @@ A sleek and modern weather app built with **Next.js**, **Material UI**, and **Op
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/st-weather-app.git
-   cd st-weather-app
+   git clone https://github.com/Stergianni/St-Weather-App.git
+   cd St-Weather-App/weather-app
