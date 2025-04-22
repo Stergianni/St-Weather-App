@@ -103,25 +103,47 @@ export default function Weather() {
         p: 3,
       }}
     >
-      {/* Title */}
-      <Typography
-        variant="h1"
-        fontWeight="bold"
-        gutterBottom
-        sx={{
-          mb: 6,
-          textAlign: "center",
-          color: darkMode ? "white" : "black",
-          fontSize: {
-            xs: "1.75rem",
-            sm: "2.5rem",
-            md: "4rem",
-            lg: "5rem",
-          },
-        }}
+      {/* Logo + Title */}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        gap={2}
+        mb={6}
+        sx={{ flexWrap: "wrap" }}
       >
-        St-Weather App
-      </Typography>
+        <Image
+          src="/weather-icon.svg"
+          alt="Weather Icon"
+          width={60}
+          height={60}
+          priority
+          style={{
+            filter: darkMode
+              ? "brightness(0) saturate(100%) invert(42%) sepia(94%) saturate(2426%) hue-rotate(3deg) brightness(103%) contrast(106%)"
+              : "none",
+          }}
+        />
+
+        <Typography
+          variant="h1"
+          fontWeight="bold"
+          sx={{
+            fontFamily: "'JetBrains Mono', monospace",
+            textAlign: "center",
+            color: darkMode ? "white" : "black",
+            fontSize: {
+              xs: "1.75rem",
+              sm: "2.5rem",
+              md: "4rem",
+              lg: "5rem",
+            },
+          }}
+        >
+          St-Weather App
+        </Typography>
+      </Box>
+
 
       {/* Toggles */}
       <Box display="flex" alignItems="center" gap={4} mb={3}>
@@ -174,10 +196,15 @@ export default function Weather() {
         sx={{
           mb: 2,
           width: 300,
-          "& label": { color: "#FF6001" },
-          "& label.Mui-focused": { color: "#FF6001" },
+          "& label.Mui-focused": {
+            color: "#FF6001",
+          },
+          "& label": {
+            color: "#FF6001",
+          },
           "& .MuiOutlinedInput-root": {
-            color: darkMode ? "white" : "#121212",
+            backgroundColor: darkMode ? "#121212" : "#E4E4E4", // 👈 set background
+            color: darkMode ? "white" : "black",
             "& fieldset": {
               borderColor: darkMode ? "#BEBEBE" : "#FF6001",
             },
@@ -188,10 +215,10 @@ export default function Weather() {
               borderColor: "#FF6001",
             },
           },
-          "& input::placeholder": {
+          "& .MuiInputBase-input::placeholder": {
             color: "#FF6001",
           },
-        }}
+        }}        
         onKeyDown={(e) => e.key === "Enter" && fetchWeather()}
       />
 
