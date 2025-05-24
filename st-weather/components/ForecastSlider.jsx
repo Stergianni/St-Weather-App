@@ -18,7 +18,7 @@ const ForecastSlider = ({ hourly = [], onSelect }) => {
 
   return (
     <ScrollArea className="w-full whitespace-nowrap py-4">
-      <div className="flex gap-4 px-2">
+      <div className="flex gap-4 px-2 h-[170px] justify-center items-center">
         {hourly.map((hour, idx) => {
           const time = formatTime(hour.dt, hour.timezone_offset || 0);
           const temp = hour.main?.temp !== undefined ? formatTemperature(hour.main.temp) : "N/A";
@@ -30,9 +30,8 @@ const ForecastSlider = ({ hourly = [], onSelect }) => {
           return (
             <Card
               key={hour.dt}
-              width={100}
-              height={100}
               onClick={() => handleSelect(idx)}
+              className="h-fit"
             // className={`min-w-[72px] cursor-pointer text-center transition-colors ${
             //   isSelected ? "bg-blue-600 text-white" : "bg-muted"
             // }`}
