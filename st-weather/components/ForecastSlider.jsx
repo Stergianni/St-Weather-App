@@ -31,7 +31,7 @@ const ForecastSlider = ({ hourly = [], onSelect }) => {
             <Card
               key={hour.dt}
               onClick={() => handleSelect(idx)}
-              className="h-fit"
+              
             // className={`min-w-[72px] cursor-pointer text-center transition-colors ${
             //   isSelected ? "bg-blue-600 text-white" : "bg-muted"
             // }`}
