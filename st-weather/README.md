@@ -1,8 +1,4 @@
-Sure! Here's a professional and developer-friendly `README.md` file tailored to your St-Weather-App project built with Next.js, OpenWeatherMap, and ShadCN UI:
 
----
-
-````markdown
 # 🌤️ St-Weather-App
 
 A sleek, responsive weather application built with **Next.js**, **Tailwind CSS**, and **ShadCN UI**. This app displays current weather, air quality, UV index, hourly forecast (slider), and a daily forecast list using data from the [OpenWeatherMap API](https://openweathermap.org/api).
